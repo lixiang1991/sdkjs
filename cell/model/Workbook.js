@@ -2011,7 +2011,7 @@
 		//временно добавляю новый вставляемый лист, чтобы не передавать параметры через большое количество функций
 		this.addingWorksheet = null;
 	}
-	Workbook.prototype.init=function(tableCustomFunc, tableIds, bNoBuildDep, bSnapshot){
+	Workbook.prototype.init=function(tableCustomFunc, tableIds, sheetIds, bNoBuildDep, bSnapshot){
 		if(this.nActive < 0)
 			this.nActive = 0;
 		if(this.nActive >= this.aWorksheets.length)
@@ -2042,7 +2042,7 @@
 		}
 		//ws
 		this.forEach(function (ws) {
-			ws.initPostOpen(self.wsHandlers, tableIds);
+			ws.initPostOpen(self.wsHandlers, tableIds, sheetIds);
 		});
 		//show active if it hidden
 		var wsActive = this.getActiveWs();
@@ -2596,7 +2596,7 @@
 			wb.aWorksheetsById[ws.getId()] = ws;
 		});
 		//init trigger
-		wb.init({}, {}, true, false);
+		wb.init({}, {}, {}, true, false);
 		return wb;
 	};
 	Workbook.prototype.getAllFormulas = function() {
@@ -3851,7 +3851,7 @@
 		this.initColumn(this.oAllCol);
 		this.aCols.forEach(this.initColumn, this);
 	};
-	Worksheet.prototype.initPostOpen = function (handlers, tableIds) {
+	Worksheet.prototype.initPostOpen = function (handlers, tableIds, sheetIds) {
 		this.PagePrintOptions.init();
 		this.headerFooter.init();
 		if (this.dataValidations) {
@@ -3870,7 +3870,7 @@
 		this.handlers = handlers;
 		this._setHandlersTablePart();
 		this.aSlicers.forEach(function(elem){
-			elem.initPostOpen(tableIds);
+			elem.initPostOpen(tableIds, sheetIds);
 		})
 	};
 	Worksheet.prototype._getValuesForConditionalFormatting = function(ranges, numbers) {
