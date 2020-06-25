@@ -763,7 +763,7 @@
 
 	CT_slicer.prototype.getSortOrder = function () {
 		//TODO может быть не только таблица
-		var table = this.cacheDefinition.getTableSlicerCache();
+		var table = this.cacheDefinition.getTableSlicerCache() || this.cacheDefinition.getTabular();
 		if (table) {
 			return table.sortOrder;
 		}
@@ -771,7 +771,7 @@
 	};
 
 	CT_slicer.prototype.getCustomListSort = function () {
-		var table = this.cacheDefinition.getTableSlicerCache();
+		var table = this.cacheDefinition.getTableSlicerCache() || this.cacheDefinition.getTabular();
 		if (table) {
 			return table.customListSort;
 		}
@@ -935,7 +935,7 @@
 	};
 
 	CT_slicer.prototype.asc_getCrossFilter = function () {
-		var table = this.cacheDefinition.getTableSlicerCache();
+		var table = this.cacheDefinition.getTableSlicerCache() || this.cacheDefinition.getTabular();
 		if (table) {
 			return table.crossFilter;
 		}
@@ -1312,6 +1312,9 @@
 	CT_slicerCacheDefinition.prototype.getTableSlicerCache = function () {
 		return this.tableSlicerCache;
 	};
+	CT_slicerCacheDefinition.prototype.getTabular = function () {
+		return this.data && this.data.tabular;
+	};
 
 	CT_slicerCacheDefinition.prototype.checkObjApply = function (name, obj_name, type, pivotTable){
 		var res = false;
@@ -1345,6 +1348,10 @@
 		if (tableCache) {
 			this._type = insertSlicerType.table;
 		}
+		var tabular = this.getTabular();
+		if (tabular) {
+			this._type = insertSlicerType.pivotTable;
+		}
 
 		return this._type;
 	};
@@ -1371,13 +1378,9 @@
 	};
 
 	CT_slicerCacheDefinition.prototype.setSortOrder = function (val) {
-		var oldVal, obj;
-		if (this.tableSlicerCache) {
-			obj = this.tableSlicerCache;
-			oldVal = this.tableSlicerCache.sortOrder;
-		}
-
-		if (obj && oldVal !== val) {
+		var obj = this.getTableSlicerCache() || this.getTabular();
+		if (obj && obj.sortOrder !== val) {
+			var oldVal = obj.sortOrder;
 			obj.setSortOrder(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheSortOrder,
 				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
@@ -1385,13 +1388,9 @@
 	};
 
 	CT_slicerCacheDefinition.prototype.setCustomListSort = function (val) {
-		var oldVal, obj;
-		if (this.tableSlicerCache) {
-			obj = this.tableSlicerCache;
-			oldVal = this.tableSlicerCache.customListSort;
-		}
-
-		if (obj && oldVal !== val) {
+		var obj = this.getTableSlicerCache() || this.getTabular();
+		if (obj && obj.customListSort !== val) {
+			var oldVal = obj.customListSort;
 			obj.setCustomListSort(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheCustomListSort,
 				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
@@ -1399,13 +1398,9 @@
 	};
 
 	CT_slicerCacheDefinition.prototype.setCrossFilter = function (val) {
-		var oldVal, obj;
-		if (this.tableSlicerCache) {
-			obj = this.tableSlicerCache;
-			oldVal = this.tableSlicerCache.crossFilter;
-		}
-
-		if (obj && oldVal !== val) {
+		var obj = this.getTableSlicerCache() || this.getTabular();
+		if (obj && obj.crossFilter !== val) {
+			var oldVal = obj.crossFilter;
 			obj.setCrossFilter(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheCrossFilter,
 				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
@@ -1432,9 +1427,9 @@
 		if (hideItemsWithNoData) {
 			return true;
 		} else {
-			var table = this.getTableSlicerCache();
+			var table = this.getTableSlicerCache() || this.getTabular();
 			if (table) {
-				return table.crossFilter !== ST_slicerCacheCrossFilter.None || table.crossFilter === null;
+				return table.crossFilter !== ST_slicerCacheCrossFilter.None;
 			}
 			return true;
 		}
@@ -1445,9 +1440,9 @@
 		if (hideItemsWithNoData) {
 			return true;
 		} else {
-			var table = this.getTableSlicerCache();
+			var table = this.getTableSlicerCache() || this.getTabular();
 			if (table) {
-				return table.crossFilter === ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop || table.crossFilter === null;
+				return table.crossFilter === ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop;
 			}
 			return true;
 		}
@@ -2363,7 +2358,7 @@
 		this.customListSort = val;
 	};
 
-	CT_slicerCacheDefinition.prototype.setCrossFilter = function (val) {
+	CT_tableSlicerCache.prototype.setCrossFilter = function (val) {
 		this.crossFilter = val;
 	};
 
@@ -2495,6 +2490,15 @@
 		for(var i = 0; i < this.items.length && i < values.length; ++i){
 			this.items[i].s = values[i].visible;
 		}
+	};
+	CT_tabularSlicerCache.prototype.setSortOrder = function (val) {
+		this.sortOrder = val;
+	};
+	CT_tabularSlicerCache.prototype.setCustomListSort = function (val) {
+		this.customListSort = val;
+	};
+	CT_tabularSlicerCache.prototype.setCrossFilter = function (val) {
+		this.crossFilter = val;
 	};
 
 	function CT_slicerCacheOlapLevelName() {
@@ -2742,7 +2746,6 @@
 	prot["asc_setRowHeight"] = prot.asc_setRowHeight;
 	prot["asc_setLockedPosition"] = prot.asc_setLockedPosition;
 	prot["asc_setSortOrder"] = prot.asc_setSortOrder;
-	prot["asc_setCrossFilter"] = prot.asc_setCrossFilter;
 	prot["asc_setHideItemsWithNoData"] = prot.asc_setHideItemsWithNoData;
 	prot["asc_setCustomListSort"] = prot.asc_setCustomListSort;
 	prot["asc_setIndicateItemsWithNoData"] = prot.asc_setIndicateItemsWithNoData;
