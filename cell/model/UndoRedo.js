@@ -413,6 +413,7 @@ function (window, undefined) {
 		this.PivotCacheDefinition = 85;
 		this.PivotCacheRecords = 86;
 		this.BinaryWrapper = 87;
+		this.BinaryWrapper2 = 88;
 
 		this.Layout = 90;
 
@@ -580,6 +581,8 @@ function (window, undefined) {
 					return new CT_PivotCacheRecords();
 				case this.BinaryWrapper:
 					return new UndoRedoData_BinaryWrapper();
+				case this.BinaryWrapper2:
+					return new UndoRedoData_BinaryWrapper2();
 				case this.Layout:
 					return new UndoRedoData_Layout();
 				case this.ArrayFormula:
@@ -1353,6 +1356,32 @@ function (window, undefined) {
 		data.Id = this.Id;
 		data.Read_FromBinary2(reader);
 		return data;
+	};
+	function UndoRedoData_BinaryWrapper2(data) {
+		this.binary = null;
+		this.len = 0;
+		if (data) {
+			var memory = new AscCommon.CMemory(true);
+			memory.CheckSize(1000);
+			data.Write_ToBinary2(memory);
+			this.len = memory.GetCurPosition();
+			this.binary = memory.GetData();
+		}
+	}
+	UndoRedoData_BinaryWrapper2.prototype.getType = function () {
+		return UndoRedoDataTypes.BinaryWrapper2;
+	};
+	UndoRedoData_BinaryWrapper2.prototype.Write_ToBinary2 = function (writer) {
+		writer.WriteLong(this.len);
+		writer.WriteBuffer(this.binary, 0, this.len);
+	};
+	UndoRedoData_BinaryWrapper2.prototype.Read_FromBinary2 = function (reader) {
+		this.len = reader.GetLong();
+		this.binary = reader.GetBuffer(this.len);
+	};
+	UndoRedoData_BinaryWrapper2.prototype.initObject = function (data) {
+		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
+		data.Read_FromBinary2(reader);
 	};
 
 	function UndoRedoData_Layout(from, to) {
@@ -3434,6 +3463,17 @@ function (window, undefined) {
 				}
 				break;
 			}
+			case AscCH.historyitem_Slicer_SetCacheData: {
+				slicerCache = oModel.getSlicerCacheByName(Data.name);
+				if (slicerCache) {
+					var cache = new Asc.CT_slicerCacheDefinition();
+					var wrapper = bUndo ? Data.from : Data.to;
+					wrapper.initObject(cache);
+					slicerCache.data = cache.data;
+					updateByCacheName = Data.name;
+				}
+				break;
+			}
 		}
 
 		if (updateByCacheName === null && slicer) {
@@ -3490,6 +3530,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoHeaderFooter = UndoRedoHeaderFooter;
 	window['AscCommonExcel'].UndoRedoSortState = UndoRedoSortState;
 	window['AscCommonExcel'].UndoRedoData_BinaryWrapper = UndoRedoData_BinaryWrapper;
+	window['AscCommonExcel'].UndoRedoData_BinaryWrapper2 = UndoRedoData_BinaryWrapper2;
 	window['AscCommonExcel'].UndoRedoSlicer = UndoRedoSlicer;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
