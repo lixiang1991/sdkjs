@@ -3918,6 +3918,15 @@ CT_pivotTableDefinition.prototype.syncSlicersWithPivot = function(cacheFieldsWit
 		slicerCache.syncWithPivot(t, cacheFieldsWithData);
 	});
 };
+CT_pivotTableDefinition.prototype.getPivotTablesConnectedBySlicer = function(fld) {
+	var res = [];
+	var ws = this.worksheet;
+	var slicerCache = ws.workbook.getSlicerCacheByPivotTableFld(ws.getId(), this.name, fld);
+	if (slicerCache) {
+		res = res.concat(slicerCache.getPivotTables());
+	}
+	return res;
+};
 
 function CT_pivotTableDefinitionX14() {
 //Attributes
