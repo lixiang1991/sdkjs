@@ -446,6 +446,11 @@ CHistory.prototype.RemoveLastPoint = function()
 {
 	this.Remove_LastPoint();
 };
+CHistory.prototype.Clear_Redo = function()
+{
+	// Удаляем ненужные точки
+	this.Points.length = this.Index + 1;
+};
 CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 {
 	// Выполняем все действия в прямом порядке
