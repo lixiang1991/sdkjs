@@ -2941,19 +2941,19 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 	if (null !== this.pivotFields) {
 		this.pivotFields.toXml(writer, "pivotFields");
 	}
-	if (null !== this.rowFields) {
+	if (null !== this.rowFields && this.rowFields.getCount() > 0) {
 		this.rowFields.toXml(writer, "rowFields");
 	}
 	if (null !== this.rowItems) {
 		this.rowItems.toXml(writer, "rowItems");
 	}
-	if (null !== this.colFields) {
+	if (null !== this.colFields && this.colFields.getCount() > 0) {
 		this.colFields.toXml(writer, "colFields");
 	}
 	if (null !== this.colItems) {
 		this.colItems.toXml(writer, "colItems");
 	}
-	if (null !== this.pageFields) {
+	if (null !== this.pageFields && this.pageFields.getCount() > 0) {
 		this.pageFields.toXml(writer, "pageFields");
 	}
 	if (null !== this.dataFields) {
@@ -5815,6 +5815,14 @@ CT_DataFields.prototype.getCount = function () {
 CT_DataFields.prototype.checkDuplicateName = function(name) {
 	for (var i = 0; i < this.dataField.length; ++i) {
 		if (name === this.dataField[i].name) {
+			return true;
+		}
+	}
+	return false;
+};
+CT_DataFields.prototype.hasField = function(fld) {
+	for (var i = 0; i < this.dataField.length; ++i) {
+		if (fld === this.dataField[i].fld) {
 			return true;
 		}
 	}
