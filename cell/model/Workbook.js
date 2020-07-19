@@ -2057,6 +2057,11 @@
 			this.snapshot = this._getSnapshot();
 		}
 	};
+	Workbook.prototype.initPostOpenZip=function(pivotCaches){
+		this.forEach(function (ws) {
+			ws.initPostOpenZip(pivotCaches);
+		});
+	};
 	Workbook.prototype.setCommonIndexObjectsFrom = function(wb) {
 		this.oStyleManager = wb.oStyleManager;
 		this.sharedStrings = wb.sharedStrings;
@@ -3186,9 +3191,9 @@
 		}
 		return null;
 	};
-	Workbook.prototype.getPivotCacheById = function(pivotCacheId) {
+	Workbook.prototype.getPivotCacheById = function(pivotCacheId, pivotCachesOpen) {
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
-			var cache = this.aWorksheets[i].getPivotCacheById(pivotCacheId);
+			var cache = this.aWorksheets[i].getPivotCacheById(pivotCacheId, pivotCachesOpen);
 			if (cache) {
 				return cache;
 			}
@@ -3912,6 +3917,11 @@
 		this._setHandlersTablePart();
 		this.aSlicers.forEach(function(elem){
 			elem.initPostOpen(tableIds, sheetIds);
+		})
+	};
+	Worksheet.prototype.initPostOpenZip = function (pivotCaches) {
+		this.aSlicers.forEach(function(elem){
+			elem.initPostOpenZip(pivotCaches);
 		})
 	};
 	Worksheet.prototype._getValuesForConditionalFormatting = function(ranges, numbers) {
@@ -7425,21 +7435,46 @@
 		return res;
 	};
 	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
-		var res = null;
-		for (var i = 0; i < this.pivotTables.length; ++i) {
-			var pivotTable = this.pivotTables[i];
-			if (dataRef === pivotTable.asc_getDataRef()) {
-				res = pivotTable.cacheDefinition;
-				break;
+		return this.forEachPivotCache(undefined, function(cacheDefinition){
+			if (dataRef === cacheDefinition.asc_getDataRef()) {
+				return cacheDefinition;
+			}
+		});
+	};
+	Worksheet.prototype.getPivotCacheById = function(pivotCacheId, pivotCachesOpen) {
+		return this.forEachPivotCache(pivotCachesOpen, function(cacheDefinition){
+			if (pivotCacheId === cacheDefinition.getPivotCacheId()) {
+				return cacheDefinition;
+			}
+		});
+	};
+	Worksheet.prototype.forEachPivotCache = function(pivotCachesOpen, callback) {
+		var res, i;
+		for (i = 0; i < this.pivotTables.length; ++i) {
+			res = callback(this.pivotTables[i].cacheDefinition);
+			if(res){
+				return res;
 			}
 		}
-		return res;
-	};
-	Worksheet.prototype.getPivotCacheById = function(pivotCacheId) {
-		for (var i = 0; i < this.pivotTables.length; ++i) {
-			var cacheDefinition = this.pivotTables[i].cacheDefinition;
-			if (pivotCacheId === cacheDefinition.getPivotCacheId()) {
-				return cacheDefinition
+		for (i = 0; i < this.aSlicers.length; ++i) {
+			var cacheDefinition = this.aSlicers[i].getPivotCache();
+			if (cacheDefinition) {
+				res = callback(cacheDefinition);
+				if(res){
+					return res;
+				}
+			}
+		}
+		//for slicer with zero pivot connection
+		if (pivotCachesOpen) {
+			for (var cacheId in pivotCachesOpen) {
+				var cacheDefinition = pivotCachesOpen[cacheId];
+				if (cacheDefinition) {
+					res = callback(cacheDefinition);
+					if(res){
+						return res;
+					}
+				}
 			}
 		}
 		return null;

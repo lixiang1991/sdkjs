@@ -2791,15 +2791,29 @@
 				for (var i = 0; i < ws.pivotTables.length; ++i) {
 					var pivotTable = ws.pivotTables[i];
 					if (oThis.isCopyPaste && !pivotTable.isInRange(oThis.isCopyPaste)) {
-						return;
+						continue;
 					}
 					if (pivotTable.cacheDefinition) {
 						var pivotCache = pivotCaches[pivotTable.cacheDefinition.Get_Id()];
 						if (!pivotCache) {
 							pivotCache = {id: pivotCacheIndex++, cache: pivotTable.cacheDefinition};
 							pivotCaches[pivotTable.cacheDefinition.Get_Id()] = pivotCache;
-				}
+						}
 						pivotTable.cacheId = pivotCache.id;
+					}
+				}
+				for (var i = 0; i < ws.aSlicers.length; ++i) {
+					var slicer = ws.aSlicers[i];
+					if (oThis.isCopyPaste) {
+						continue;
+					}
+					var cacheDefinition = slicer.getPivotCache();
+					if (cacheDefinition) {
+						var pivotCache = pivotCaches[cacheDefinition.Get_Id()];
+						if (!pivotCache) {
+							pivotCache = {id: pivotCacheIndex++, cache: cacheDefinition};
+							pivotCaches[cacheDefinition.Get_Id()] = pivotCache;
+						}
 					}
 				}
 			}, this.oBinaryWorksheetsTableWriter.isCopyPaste);

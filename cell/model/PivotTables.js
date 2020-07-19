@@ -1310,7 +1310,7 @@ function CT_PivotCacheDefinition() {
 	this.measureGroups = null;
 	this.maps = null;
 	//ext
-	this.pivotCacheDefinitionX14 = null;
+	this.pivotCacheDefinitionX14 = new CT_PivotCacheDefinitionX14();
 	//editor
 	this.cacheRecords = null;
 	this.Id = AscCommon.g_oIdCounter.Get_NewId();
@@ -1620,6 +1620,9 @@ CT_PivotCacheDefinition.prototype.isValidCacheSource = function () {
 CT_PivotCacheDefinition.prototype.getWorksheetSource = function() {
 	return this.cacheSource && this.cacheSource.worksheetSource;
 };
+CT_PivotCacheDefinition.prototype.asc_getDataRef = function() {
+	return this.getWorksheetSource() && this.getWorksheetSource().getDataRef() || '';
+};
 CT_PivotCacheDefinition.prototype.fromDataRef = function(dataRef) {
 	this.cacheSource = new CT_CacheSource();
 	this.cacheSource.type = c_oAscSourceType.Worksheet;
@@ -1633,26 +1636,13 @@ CT_PivotCacheDefinition.prototype.fromDataRef = function(dataRef) {
 	}
 };
 CT_PivotCacheDefinition.prototype.getPivotCacheId = function() {
-	return this.pivotCacheDefinitionX14 && this.pivotCacheDefinitionX14.pivotCacheId || null;
-};
-CT_PivotCacheDefinition.prototype.getOrCreatePivotCacheId = function(wb) {
-	if (!this.pivotCacheDefinitionX14) {
-		this.pivotCacheDefinitionX14 = new CT_PivotCacheDefinitionX14();
-	}
-	if (null === this.pivotCacheDefinitionX14.pivotCacheId) {
-		var pivotCacheId = AscCommon.CreateUInt32();
-		while (wb.getPivotCacheById(pivotCacheId)) {
-			pivotCacheId = AscCommon.CreateUInt32();
-		}
-		this.pivotCacheDefinitionX14.pivotCacheId = pivotCacheId;
-	}
-	return this.pivotCacheDefinitionX14.pivotCacheId;
+	return this.pivotCacheDefinitionX14 && this.pivotCacheDefinitionX14.pivotCacheId;
 };
 
 function CT_PivotCacheDefinitionX14() {
 //Attributes
 	this.slicerData = false;
-	this.pivotCacheId = null;
+	this.pivotCacheId = AscCommon.CreateUInt32();
 	this.supportSubqueryNonVisual = false;
 	this.supportSubqueryCalcMem = false;
 	this.supportAddCalcMems = false;
@@ -3416,7 +3406,7 @@ CT_pivotTableDefinition.prototype.asc_select = function (api) {
 	this.getAllRange(api.wbModel.getActiveWs()).Select();
 };
 CT_pivotTableDefinition.prototype.asc_getDataRef = function() {
-	return this.cacheDefinition && this.cacheDefinition.getWorksheetSource() && this.cacheDefinition.getWorksheetSource().getDataRef() || '';
+	return this.cacheDefinition && this.cacheDefinition.getDataRef() || '';
 };
 
 
@@ -3533,8 +3523,10 @@ CT_pivotTableDefinition.prototype.getFilterMaps = function(cacheFieldsWithData) 
 		slicerCaches.forEach(function(slicerCache) {
 			var fieldIndex = t.cacheDefinition.getFieldIndexByName(slicerCache.sourceName);
 			pivotField = pivotFields[fieldIndex];
-			if (pivotField && slicerCache.getIndicateItemsWithNoData()) {
-				cacheFieldsWithData[fieldIndex] = new Uint8Array(pivotField.getItemsCount());
+			if (pivotField) {
+				if (slicerCache.getIndicateItemsWithNoData()) {
+					cacheFieldsWithData[fieldIndex] = new Uint8Array(pivotField.getItemsCount());
+				}
 				if ((null === pivotField.axis || c_oAscAxis.AxisValues === pivotField.axis) && !pivotField.isAllVisible()) {
 					labelFilters.push({index: fieldIndex, map: pivotField.getFilterMap()});
 				}
