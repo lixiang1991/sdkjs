@@ -46,7 +46,9 @@ function (window, undefined) {
 	var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAKCAYAAAB10jRKAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAAJElEQVQYV2MAAjUQoQIiFECEDIiQABHCIIIPRHCBCDYgZmACABohANImre1SAAAAAElFTkSuQmCC';
 	//var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAADCAQAAAD41K0JAAAAD0lEQVR42mNgEGJmAAJmAACcABmX0vttAAAAAElFTkSuQmCC';
 	var sFrozenImageRotUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAAGklEQVQYV2NkYGBQA+J/QPwHCf+GYiif4Q8AnJAJBNqB9DYAAAAASUVORK5CYII=';
-
+	var SHADOW_LENGTH = 10;
+	var BORDER_COLOR = 0xAA;
+	var BORDER_WIDTH = 2;
 // Type
 var FrozenAreaType = {
 
@@ -607,8 +609,41 @@ function FrozenPlace(ws, type) {
 		_this.restore(canvas.shapeCtx);
 	};
 	
+	_this.drawFrozenPaneBorderHor = function(autoShapeTrack, y, left, right) {
+		if(Asc.editor.asc_getFrozenPaneBorderType() === Asc.c_oAscFrozenPaneBorderType.shadow) {
+			autoShapeTrack.drawImage(sFrozenImageUrl, left, y, right, SHADOW_LENGTH);
+		}
+		else {
+			autoShapeTrack.p_color(BORDER_COLOR, BORDER_COLOR, BORDER_COLOR);
+			var nW = BORDER_WIDTH;
+			if(AscCommon.AscBrowser.isRetina) {
+				nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+			}
+			autoShapeTrack.p_width(nW);
+			autoShapeTrack._s();
+			autoShapeTrack._m(left, y);
+			autoShapeTrack._l(right, y);
+			autoShapeTrack.ds();
+		}
+	};
 	
-	
+	_this.drawFrozenPaneBorderVer = function(autoShapeTrack, x, top, bottom) {
+		if(Asc.editor.asc_getFrozenPaneBorderType() === Asc.c_oAscFrozenPaneBorderType.shadow) {
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, x, top, SHADOW_LENGTH, bottom);
+		}
+		else {
+			autoShapeTrack.p_color(BORDER_COLOR, BORDER_COLOR, BORDER_COLOR);
+			var nW = BORDER_WIDTH;
+			if(AscCommon.AscBrowser.isRetina) {
+				nW = AscCommon.AscBrowser.convertToRetinaValue(nw, true);
+			}
+			autoShapeTrack.p_width(nW);
+			autoShapeTrack._s();
+			autoShapeTrack._m(x, top);
+			autoShapeTrack._l(x, bottom);
+			autoShapeTrack.ds();
+		}
+	};
 	_this.drawSelection = function(drawingDocument, shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay) {
 
 		var ctx = trackOverlay.m_oContext;
@@ -648,31 +683,33 @@ function FrozenPlace(ws, type) {
 			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
 			fTop = this.worksheet._getRowTop(_this.frozenCell.row);
 			fLeft = 0;
-			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
+			this.drawFrozenPaneBorderHor(autoShapeTrack, fTop, fLeft, autoShapeTrack.Graphics.m_lWidthPix);
 		}
 		else if(_this.type === FrozenAreaType.Right){
 			fTop = 0;
 			fLeft = this.worksheet._getColLeft(_this.frozenCell.col);
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
+			this.drawFrozenPaneBorderVer(autoShapeTrack, fLeft, fTop, autoShapeTrack.Graphics.m_lHeightPix);
 		}
 		else if(_this.type === FrozenAreaType.RightBottom){
 			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
 			fTop = this.worksheet._getRowTop(_this.frozenCell.row);
 			fLeft = this.worksheet._getColLeft(_this.frozenCell.col);
-			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
+			
+			this.drawFrozenPaneBorderHor(autoShapeTrack, fTop, fLeft, autoShapeTrack.Graphics.m_lWidthPix);
+			this.drawFrozenPaneBorderVer(autoShapeTrack, fLeft, fTop, autoShapeTrack.Graphics.m_lHeightPix);
 		}
 		else if(_this.type === FrozenAreaType.LeftBottom){
 			fTop = this.worksheet._getRowTop(_this.frozenCell.row);
 			fLeft = 0;
 			fRight = this.worksheet._getColLeft(_this.frozenCell.col);
-			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
+			
+			this.drawFrozenPaneBorderHor(autoShapeTrack, fTop, fLeft, fRight);
 		}
 		else if(_this.type === FrozenAreaType.RightTop){
 			fTop = 0;
 			fLeft = this.worksheet._getColLeft(_this.frozenCell.col);
 			fBottom = this.worksheet._getRowTop(_this.frozenCell.row);
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);
+			this.drawFrozenPaneBorderVer(autoShapeTrack, fLeft, fTop, fBottom);
 		}	
 	};
 	
