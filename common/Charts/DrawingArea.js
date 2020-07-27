@@ -614,16 +614,7 @@ function FrozenPlace(ws, type) {
 			autoShapeTrack.drawImage(sFrozenImageUrl, left, y, right, SHADOW_LENGTH);
 		}
 		else {
-			autoShapeTrack.p_color(BORDER_COLOR, BORDER_COLOR, BORDER_COLOR);
-			var nW = BORDER_WIDTH;
-			if(AscCommon.AscBrowser.isRetina) {
-				nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
-			}
-			autoShapeTrack.p_width(nW);
-			autoShapeTrack._s();
-			autoShapeTrack._m(left, y);
-			autoShapeTrack._l(right, y);
-			autoShapeTrack.ds();
+			autoShapeTrack.m_oOverlay.DrawFrozenPlaceHorLine(y, left, right);
 		}
 	};
 	
@@ -632,16 +623,7 @@ function FrozenPlace(ws, type) {
 			autoShapeTrack.drawImage(sFrozenImageRotUrl, x, top, SHADOW_LENGTH, bottom);
 		}
 		else {
-			autoShapeTrack.p_color(BORDER_COLOR, BORDER_COLOR, BORDER_COLOR);
-			var nW = BORDER_WIDTH;
-			if(AscCommon.AscBrowser.isRetina) {
-				nW = AscCommon.AscBrowser.convertToRetinaValue(nw, true);
-			}
-			autoShapeTrack.p_width(nW);
-			autoShapeTrack._s();
-			autoShapeTrack._m(x, top);
-			autoShapeTrack._l(x, bottom);
-			autoShapeTrack.ds();
+			autoShapeTrack.m_oOverlay.DrawFrozenPlaceVerLine(x, top, bottom);
 		}
 	};
 	_this.drawSelection = function(drawingDocument, shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay) {
