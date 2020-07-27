@@ -1223,21 +1223,42 @@
 
     /**
      * Specify the shading which shall be applied to the extents of the current table.
-     * @param {?ApiFill} oApiFill
-     */
-
-    ApiTable.prototype.SetShd = function(oApiFill)
+     * @typeofeditors ["CPE"]
+	 * @param {ShdType} sType - The shading type applied to the contents of the current table.
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 */
+    ApiTable.prototype.SetShd = function(sType, r, g, b)
     {
-        var oPr = this.Table.Pr.Copy();
-        if(!oApiFill){
-            oPr.Shd = null;
-        }
-        else{
-            var oShd = new CDocumentShd();
-            oShd.Value = Asc.c_oAscShdClear;
-            oShd.Unifill = oApiFill.UniFill;
+        var oPr    = this.Table.Pr.Copy();
+        var color  = new Asc.asc_CColor({r : r, g: g, b: b, Auto : false});
+        var oShd   = new CDocumentShd();
+        var _Shd   = null;
+        if (sType === "nil") {
+            _Shd = {Value : Asc.c_oAscShdNil};
+            oShd.Set_FromObject(_Shd);
             oPr.Shd = oShd;
         }
+        else if (sType === "clear") {
+
+            var Unifill        = new AscFormat.CUniFill();
+			Unifill.fill       = new AscFormat.CSolidFill();
+			Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+			_Shd = {
+				Value   : Asc.c_oAscShdClear,
+				Color   : {
+					r : color.asc_getR(),
+					g : color.asc_getG(),
+					b : color.asc_getB()
+				},
+				Unifill : Unifill
+			};
+			
+			oShd.Set_FromObject(_Shd);
+            oPr.Shd = oShd;
+        }
+        
         this.Table.Set_Pr(oPr);
     };
 
