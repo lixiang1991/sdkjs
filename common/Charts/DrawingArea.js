@@ -43,12 +43,9 @@ function (window, undefined) {
 // Drawing area manager
 //-----------------------------------------------------------------------------------
 
-	var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAKCAYAAAB10jRKAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAAJElEQVQYV2MAAjUQoQIiFECEDIiQABHCIIIPRHCBCDYgZmACABohANImre1SAAAAAElFTkSuQmCC';
-	//var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAADCAQAAAD41K0JAAAAD0lEQVR42mNgEGJmAAJmAACcABmX0vttAAAAAElFTkSuQmCC';
-	var sFrozenImageRotUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAABCAYAAADn9T9+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTZEaa/1AAAAGklEQVQYV2NkYGBQA+J/QPwHCf+GYiif4Q8AnJAJBNqB9DYAAAAASUVORK5CYII=';
-	var SHADOW_LENGTH = 10;
-	var BORDER_COLOR = 0xAA;
-	var BORDER_WIDTH = 2;
+	var sFrozenImageUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAICAQAAACSE13KAAAAH0lEQVQI12NgV2L6+YuJAYh+M4n/YuL8y8DAwsDABABYogY5EHbuKgAAAABJRU5ErkJggg==';
+	var sFrozenImageRotUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAABCAYAAADjAO9DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAnSURBVBhXY2ZnZ1f6+/cvNwMDAwcQs4mLizOLiooyf/jwAchlYAAAc8kGpR10sBYAAAAASUVORK5CYII=';
+	var SHADOW_LENGTH = 8;
 // Type
 var FrozenAreaType = {
 
@@ -611,7 +608,11 @@ function FrozenPlace(ws, type) {
 	
 	_this.drawFrozenPaneBorderHor = function(autoShapeTrack, y, left, right) {
 		if(Asc.editor.asc_getFrozenPaneBorderType() === Asc.c_oAscFrozenPaneBorderType.shadow) {
-			autoShapeTrack.drawImage(sFrozenImageUrl, left, y, right, SHADOW_LENGTH);
+			var nH = SHADOW_LENGTH;
+			if(AscCommon.AscBrowser.isRetina) {
+				nH = AscCommon.AscBrowser.convertToRetinaValue(nH, true);
+			}
+			autoShapeTrack.drawImage(sFrozenImageUrl, left, y, right, nH);
 		}
 		else {
 			autoShapeTrack.m_oOverlay.DrawFrozenPlaceHorLine(y, left, right);
@@ -620,7 +621,11 @@ function FrozenPlace(ws, type) {
 	
 	_this.drawFrozenPaneBorderVer = function(autoShapeTrack, x, top, bottom) {
 		if(Asc.editor.asc_getFrozenPaneBorderType() === Asc.c_oAscFrozenPaneBorderType.shadow) {
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, x, top, SHADOW_LENGTH, bottom);
+			var nW = SHADOW_LENGTH;
+			if(AscCommon.AscBrowser.isRetina) {
+				nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+			}
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, x, top, nW, bottom);
 		}
 		else {
 			autoShapeTrack.m_oOverlay.DrawFrozenPlaceVerLine(x, top, bottom);
