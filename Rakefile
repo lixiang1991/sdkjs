@@ -23,16 +23,16 @@ desc 'Find if any files do not containing correct latvian adress'
 task :check_file_without_latvian_adress do
   latvian_address = 'LV-1050'
   all_js_files = Dir['./**/*.js']
-  files_without_license = []
+  files_without_address = []
   all_js_files.each do |file|
     next if excluded_source_paths.any? { |exclude| file.include?(exclude) }
 
     unless File.read(file).include?(latvian_address)
-      files_without_license << file
+      files_without_address << file
     end
   end
-  unless files_without_license.empty?
-    raise("Files without latvian body: #{files_without_license}")
+  unless files_without_address.empty?
+    raise("Files without latvian address `#{latvian_address}`: #{files_without_address}")
   end
 end
 
