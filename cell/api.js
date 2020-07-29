@@ -309,7 +309,9 @@ var editor;
   spreadsheet_api.prototype.asc_setFrozenPaneBorderType = function(nType) {
     if(this.frozenPaneBorderType !== nType) {
       this.frozenPaneBorderType = nType;
-      this.asc_showWorksheet(this.asc_getActiveWorksheetIndex());
+      if(this.wbModel) {
+        this.asc_showWorksheet(this.asc_getActiveWorksheetIndex());
+      }
     }
   };
   spreadsheet_api.prototype._openDocument = function(data) {
