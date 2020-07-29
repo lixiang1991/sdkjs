@@ -48,9 +48,6 @@
 	/** @constructor */
 	function baseEditorsApi(config, editorId)
 	{
-		if (window["AscDesktopEditor"])
-			window["AscDesktopEditor"]["CreateEditorApi"]();
-
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
         this.isLoadFonts = false;
@@ -202,6 +199,9 @@
 
 	baseEditorsApi.prototype._init                           = function()
 	{
+		if (window["AscDesktopEditor"])
+			window["AscDesktopEditor"]["CreateEditorApi"](this);
+
 		var t            = this;
 		//Asc.editor = Asc['editor'] = AscCommon['editor'] = AscCommon.editor = this; // ToDo сделать это!
 		this.HtmlElement = document.getElementById(this.HtmlElementName);
@@ -409,6 +409,12 @@
 		{
 			this.onEndLoadDocInfo();
 		}
+	};
+	baseEditorsApi.prototype.asc_isCrypto = function()
+	{
+		if (this.DocInfo && this.DocInfo.get_Encrypted() === true)
+			return true;
+		return false;
 	};
 	baseEditorsApi.prototype.asc_enableKeyEvents             = function(isEnabled, isFromInput)
 	{
@@ -720,11 +726,10 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
+		this.sendEvent('asc_LoadPluginsOrDocument');
 
-		if (window.g_asc_plugins)
-        {
+		if (window.g_asc_plugins && window.g_asc_plugins.countEventDocContOrPluginsReady == 2)
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
-        }
 
         if (c_oEditorId.Spreadsheet === this.editorId) {
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
@@ -2109,13 +2114,24 @@
 
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
-		if (null != this.pluginsManager)
+		this.sendEvent('asc_LoadPluginsOrDocument');
+
+		if (null != this.pluginsManager) {
 			this.pluginsManager.register(basePath, plugins);
+			
+			if (this.pluginsManager.countEventDocContOrPluginsReady == 2)
+				this.pluginsManager.onPluginEvent("onDocumentContentReady");
+		}
 	};
 	baseEditorsApi.prototype.asc_pluginRun         = function(guid, variation, pluginData)
 	{
 		if (null != this.pluginsManager)
 			this.pluginsManager.run(guid, variation, pluginData);
+	};
+	baseEditorsApi.prototype.asc_pluginStop        = function(guid)
+	{
+		if (null != this.pluginsManager)
+			this.pluginsManager.close(guid);
 	};
 	baseEditorsApi.prototype.asc_pluginResize      = function(pluginData)
 	{
@@ -2877,6 +2893,33 @@
 		window['AscCommonWord'].b_DoAutoCorrectMathSymbols = flag;
 	};
 
+	baseEditorsApi.prototype.getFileAsFromChanges = function()
+	{
+		var func_before = null;
+		var func_after = null;
+		if (this.editorId === AscCommon.c_oEditorId.Word)
+		{
+			if (this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.IsViewModeInReview())
+			{
+				var isFinal = (this.WordControl.m_oLogicDocument.ViewModeInReview.mode === 1) ? true : false;
+
+				func_before = function(api) {
+					api.WordControl.m_oLogicDocument.Start_SilentMode();
+					api.asc_EndViewModeInReview();
+				};
+				func_after = function(api) {
+					api.asc_BeginViewModeInReview(isFinal);
+					api.WordControl.m_oLogicDocument.End_SilentMode(false);
+				};
+			}
+		}
+
+		func_before && func_before(this);
+		var ret = this.asc_nativeGetFile3();
+		func_after && func_after(this);
+		return ret;
+	};
+
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
@@ -2945,5 +2988,7 @@
 	prot['asc_AddOrEditFromAutoCorrectMathSymbols'] = prot.asc_AddOrEditFromAutoCorrectMathSymbols;
 	prot['asc_refreshOnStartAutoCorrectMathSymbols'] = prot.asc_refreshOnStartAutoCorrectMathSymbols;
 	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
+
+	prot['asc_isCrypto'] = prot.asc_isCrypto;
 
 })(window);
